@@ -1,3 +1,9 @@
-module github.com/Aruna456/webShield
+module github.com/Aruna456/webshield
 
-go 1.24.2
+go 1.25
+
+require (
+	github.com/go-chi/chi/v5 v5.1.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
+	gopkg.in/yaml.v3 v3.0.1
+)
