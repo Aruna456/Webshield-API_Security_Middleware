@@ -1,7 +1,7 @@
 # WebShield: Lightweight API Security Middleware in Go
 
-> A **beginner-friendly**, **production-ready** API security middleware with **Rate Limiting**, **API Key**, **JWT**, and **Request Logging**.  
-> Built with **Go 1.25.3**, minimal dependencies, and fully tested.
+ A **beginner-friendly**, **production-ready** API security middleware with **Rate Limiting**, **API Key**, **JWT**, and **Request Logging**.  
+ Built with **Go 1.25.3**, minimal dependencies, and fully tested.
 
 ---
 
