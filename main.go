@@ -1,18 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/Aruna456/webshield/handlers"
 	"github.com/Aruna456/webshield/middleware"
 )
-
-// Sample handler for testing
-func usersHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to Users API!")
-}
 
 func main() {
 	// Creating a  Router
@@ -22,7 +17,7 @@ func main() {
 			middleware.RateLimitMiddleware(
 				middleware.JWTMiddleware(
 					middleware.SanitizeMiddleware(
-						http.HandlerFunc(usersHandler),
+						http.HandlerFunc(handlers.UsersHandler),
 						middleware.WithQuery(),
 						middleware.WithBody(),
 						middleware.WithAllowedFields(map[string][]string{
