@@ -1,80 +1,112 @@
-# WebShield: Lightweight API Security Middleware in Go
+# WebShield – Secure Go HTTP Middleware
 
- A **beginner-friendly**, **production-ready** API security middleware with **Rate Limiting**, **API Key**, **JWT**, and **Request Logging**.  
- Built with **Go 1.25.3**, minimal dependencies, and fully tested.
+**A lightweight, pluggable security middleware for Go web APIs**  
+**Protects against OWASP Top 10** with **zero external dependencies**.
 
 ---
 
 ## Features
 
-- ✅ API Key Authentication (`X-Api-Key`)
-- 🔐 JWT Validation (signature + expiry)
-- 🚦 Rate Limiting per IP (in-memory, thread-safe)
-- 🧾 Request Logging with Correlation ID (UUID)
-- ⚙️ Configurable via `config.yaml`
-- 🧩 Composable Middleware Design
-- 🌐 Endpoints: `/health`, `/public`, `/protected`
----
+| Feature | OWASP Protection | Status |
+|-------|------------------|--------|
+| JWT Authentication | A02:2021 | Done |
+| Rate Limiting | A06:2021 | Done |
+| Input Sanitization | A03:2021 | Done |
+| Secure Headers | A05:2021 | Done |
+| JSON Audit Logging | A09:2021 | Done |
 
-## Prerequisites
-
-- **Go 1.25.3** (or newer)
-- Terminal (Linux/macOS/Windows)
 
 ---
 
-## Setup & Run
+## Quick Start
 
 ```bash
-# 1. Create project
-mkdir WebShield && cd WebShield
+# 1. Clone & enter
+git clone https://github.com/yourusername/webshield.git
+cd webshield
 
-# 2. (Paste all files from the project here — structure as shown above)
-
-# 3. Install dependencies
-go mod tidy
-
-# 4. Edit config.yaml
-nano config.yaml
-
-Example config.yaml
-
-port: 8080
-api_key: "my-super-secret-api-key-123"
-jwt_secret: "my-jwt-secret-very-long-and-random"
-enable_rate_limit: true
-rate_limit_requests: 5
-rate_limit_duration: 10
-enable_api_key: true
-enable_jwt: true
-enable_logging: true
-correlation_id_header: "X-Correlation-ID"
-
-# 5. Run the server
-go run ./cmd/webshield/main.go
+# 2. Run
+go run main.go
 ```
+## Middleware chain
 
-## Limitations
+```bash
+handler := middleware.JSONLoggingMiddleware(
+    middleware.SecureHeadersMiddleware(
+        middleware.RateLimitMiddleware(
+            middleware.JWTMiddleware(
+                middleware.SanitizeMiddleware(
+                    http.HandlerFunc(usersHandler),
+                    middleware.WithQuery(),
+                    middleware.WithBody(),
+                    middleware.WithAllowedFields(map[string][]string{
+                        "name":  {"string"},
+                        "age":   {"numeric"},
+                        "email": {"string"},
+                    }),
+                ),
+            ),
+            10, time.Minute,
+        ),
+    ),
+)
+``` 
+## Test with postman
 
-- Rate limiting is in-memory (not shared between servers)
+```bash
+# 1.Valid request
 
-- JWT validation checks signature + expiry only
+GET /api/users
+Authorization: Bearer <jwt-with-sub>
 
-- No HTTPS (use a reverse proxy like Nginx)
+# Result → 200 OK + JSON log with user_id
 
-- No database; secrets stored in config.yaml
+# 2. Invalid JWT
 
-## Future Improvements
+# Result → 401 Unauthorized
 
-🔄 Redis-based distributed rate limiting
+# 3. Rate Limit
 
-🧩 Role-based JWT claims
+# Result → Send 11 requests → 429 Too Many Requests
 
-📊 Prometheus metrics
+# 4. SQL/XSS Injection
 
-🐳 Docker + Docker Compose setup
+{ "name": "aruna'); DROP TABLE users; --" } (or) { "name": "<script> Hackher </script>" }
 
-🚏 Per-route middleware with Chi route groups
+# Result → 422 + debug log: &#39;); DROP... (or) &#39Hacker&#39
+```
+---
+## Security Headers (Verified)
+
+```http
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+Content-Security-Policy: default-src 'self'; ...
+Strict-Transport-Security: max-age=31536000; ...
+```
+---
+
+## Sample JSON Audit Log
+
+```json
+[AUDIT] {
+  "timestamp": "2025-10-29T12:00:00Z",
+  "method": "GET",
+  "path": "/api/users",
+  "client_ip": "127.0.0.1",
+  "user_id": "alice123",
+  "status": 200,
+  "latency_ms": 3
+}
+```
+---
+## Tech stack
+
+- Go 1.21+
+- dgrijalva/jwt-go
+- Standard Library Only
 
 ---
-                  Made with ❤️ for Go beginners.
+--- 
+
+        Made with ❤️ @Aruna456 

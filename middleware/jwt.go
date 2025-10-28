@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"strings"
@@ -50,7 +51,25 @@ func JWTMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		log.Println("[Debug]Token validated successfully")
-		// Token is valid, pass to next hander
-		next.ServeHTTP(w, r)
+		// // Token is valid, pass to next hander
+		// next.ServeHTTP(w, r)
+		// ---------- 5. Put claims into request context ----------
+		// Cast to map (standard JWT payload)
+		claims, _ := token.Claims.(jwt.MapClaims)
+
+		// Full map for any handler that needs it
+		ctx := context.WithValue(r.Context(), "jwt_claims", claims)
+
+		// Simple user-id for logging (optional but handy)
+		userID := ""
+		if sub, ok := claims["sub"]; ok {
+			if id, ok := sub.(string); ok {
+				userID = id
+			}
+		}
+		ctx = context.WithValue(ctx, "jwt_user_id", userID)
+
+		// Forward request with enriched context
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

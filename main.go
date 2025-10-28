@@ -10,19 +10,31 @@ import (
 )
 
 // Sample handler for testing
-func userHandler(w http.ResponseWriter, r *http.Request) {
+func usersHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to Users API!")
 }
 
 func main() {
 	// Creating a  Router
 	mux := http.NewServeMux()
-	// Chain middleware: Rate Limiting -> JWT Authentication -> Handler
-	// mux.Handle("/api/users", middleware.JWTMiddleware(http.HandlerFunc(userHandler)))
-	handler := middleware.RateLimitMiddleware(
-		middleware.JWTMiddleware(http.HandlerFunc(userHandler)),
-		10,          // 10 requests
-		time.Minute, // per minute
+	handler := middleware.JSONLoggingMiddleware( //  LOGS EVERYTHING
+		middleware.SecureHeadersMiddleware( //  HEADERS
+			middleware.RateLimitMiddleware(
+				middleware.JWTMiddleware(
+					middleware.SanitizeMiddleware(
+						http.HandlerFunc(usersHandler),
+						middleware.WithQuery(),
+						middleware.WithBody(),
+						middleware.WithAllowedFields(map[string][]string{
+							"name":  {"string"},
+							"age":   {"numeric"},
+							"email": {"string"},
+						}),
+					),
+				),
+				10, time.Minute,
+			),
+		),
 	)
 	//Register endpoints
 	mux.Handle("/api/users", handler)
