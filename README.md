@@ -17,7 +17,14 @@
 
 
 ---
+## Usage 
 
+```go
+import "github.com/yourusername/webshield/middleware"
+router.Handle("/api/users", middleware.JWTMiddleware(http.HandlerFunc(handler)))
+```
+
+---
 ## Quick Start
 
 ```bash
@@ -30,7 +37,7 @@ go run main.go
 ```
 ## Middleware chain
 
-```bash
+```go
 handler := middleware.JSONLoggingMiddleware(
     middleware.SecureHeadersMiddleware(
         middleware.RateLimitMiddleware(
