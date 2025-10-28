@@ -20,7 +20,7 @@
 ## Usage 
 
 ```go
-import "github.com/yourusername/webshield/middleware"
+import "github.com/Aruna456/webshield/middleware"
 router.Handle("/api/users", middleware.JWTMiddleware(http.HandlerFunc(handler)))
 ```
 
